@@ -7,6 +7,8 @@ import {
   ListItemButton,
   ListItemText,
   Paper,
+  Tab,
+  Tabs,
   Table,
   TableBody,
   TableCell,
@@ -50,6 +52,7 @@ export function EvaluationView() {
   const [loadingList, setLoadingList] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'monthly' | 'technical'>('monthly')
   const [sortConfig, setSortConfig] = useState<{ key: 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation'; direction: 'asc' | 'desc' }>({
     key: 'Symbol',
     direction: 'asc',
@@ -78,6 +81,8 @@ export function EvaluationView() {
     const comparison = left > right ? 1 : -1
     return sortConfig.direction === 'asc' ? comparison : -comparison
   })
+
+  const technicalRows = selectedDetail?.technical_analysis ?? []
 
   useEffect(() => {
     const loadPortfolios = async () => {
@@ -178,9 +183,48 @@ export function EvaluationView() {
       </Paper>
 
       <Paper className="portfolio-panel right-panel" elevation={0}>
-        <Typography variant="h5" className="panel-title">
-          {selectedName ?? 'Portfolio'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+          <Typography variant="h5" className="panel-title">
+            {selectedName ?? 'Portfolio'}
+          </Typography>
+
+          {selectedDetail ? (
+            <Box
+              sx={{
+                border: '1px solid rgba(15, 23, 42, 0.08)',
+                backgroundColor: 'rgba(15, 23, 42, 0.02)',
+                borderRadius: 2,
+                px: 1,
+              }}
+            >
+              <Tabs
+                value={activeTab}
+                onChange={(_, nextTab) => setActiveTab(nextTab)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  minHeight: 32,
+                  '& .MuiTabs-indicator': {
+                    height: 3,
+                    borderRadius: '999px',
+                    background: 'linear-gradient(90deg, #0f766e 0%, #2563eb 100%)',
+                  },
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    minHeight: 32,
+                    fontSize: '0.72rem',
+                    color: '#475569',
+                    '&.Mui-selected': { color: '#0f172a' },
+                  },
+                }}
+              >
+                <Tab label="Month" value="monthly" />
+                <Tab label="Technical Analytics" value="technical" />
+              </Tabs>
+            </Box>
+          ) : null}
+        </Box>
 
         <Divider sx={{ my: 2 }} />
 
@@ -190,55 +234,116 @@ export function EvaluationView() {
           </Box>
         ) : selectedDetail ? (
           <Box>
-            <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #e2e8f0' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    {[
-                      ['Symbol', 'Instrument'],
-                      ['CurrentPrice', 'Current Price'],
-                      ['PriceMonthAgo', 'Price Month Ago'],
-                      ['SMA200', 'SMA 200'],
-                      ['Trend', 'Trend'],
-                      ['Variation', 'Variation'],
-                    ].map(([key, label]) => (
-                      <TableCell
-                        key={key}
-                        sx={{ cursor: 'pointer', userSelect: 'none' }}
-                        onClick={() => handleSort(key as 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation')}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <span>{label}</span>
-                          {sortConfig.key === key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-                        </Box>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sortedRows.length > 0 ? (
-                    sortedRows.map((row: InstrumentMetrics) => (
-                      <TableRow key={row.Symbol} hover>
-                        <TableCell>{row.Symbol}</TableCell>
-                        <TableCell>{`$${Number(row.CurrentPrice ?? 0).toFixed(2)}`}</TableCell>
-                        <TableCell>{`$${Number(row.PriceMonthAgo ?? 0).toFixed(2)}`}</TableCell>
-                        <TableCell>{`$${Number(row.SMA200 ?? 0).toFixed(2)}`}</TableCell>
-                        <TableCell>{getTrendCell(row.Trend)}</TableCell>
-                        <TableCell>{getVariationCell(row.Variation)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          No instrument metrics are available for this portfolio.
-                        </Typography>
-                      </TableCell>
+            {activeTab === 'monthly' ? (
+              <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#f8fafc' }}>
+                      {[
+                        ['Symbol', 'Instrument'],
+                        ['CurrentPrice', 'Current Price'],
+                        ['PriceMonthAgo', 'Price Month Ago'],
+                        ['SMA200', 'SMA 200'],
+                        ['Trend', 'Trend'],
+                        ['Variation', 'Variation'],
+                      ].map(([key, label]) => (
+                        <TableCell
+                          key={key}
+                          sx={{
+                            backgroundColor: '#f8fafc',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                          }}
+                          onClick={() => handleSort(key as 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <span>{label}</span>
+                            {sortConfig.key === key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                          </Box>
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {sortedRows.length > 0 ? (
+                      sortedRows.map((row: InstrumentMetrics) => (
+                        <TableRow key={row.Symbol} hover>
+                          <TableCell>{row.Symbol}</TableCell>
+                          <TableCell>{`$${Number(row.CurrentPrice ?? 0).toFixed(2)}`}</TableCell>
+                          <TableCell>{`$${Number(row.PriceMonthAgo ?? 0).toFixed(2)}`}</TableCell>
+                          <TableCell>{`$${Number(row.SMA200 ?? 0).toFixed(2)}`}</TableCell>
+                          <TableCell>{getTrendCell(row.Trend)}</TableCell>
+                          <TableCell>{getVariationCell(row.Variation)}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            No instrument metrics are available for this portfolio.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#f8fafc' }}>
+                      {['Ticker', 'Price', 'RSI', 'SMA 50', 'SMA 200', 'Long Term Trend', 'Detected Signals'].map((label) => (
+                        <TableCell key={label} sx={{ backgroundColor: '#f8fafc', fontWeight: 700, color: '#334155' }}>{label}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {technicalRows.length > 0 ? (
+                      technicalRows.map((row, index) => (
+                        <TableRow key={`${row.Ticker ?? row.Symbol ?? 'technical'}-${index}`} hover>
+                          <TableCell sx={{ fontWeight: 600 }}>{row.Ticker ?? row.Symbol ?? '-'}</TableCell>
+                          <TableCell>{Number(row.Price ?? 0).toFixed(2)}</TableCell>
+                          <TableCell>{Number(row.RSI ?? 0).toFixed(2)}</TableCell>
+                          <TableCell>{Number(row.SMA_50 ?? 0).toFixed(2)}</TableCell>
+                          <TableCell>{Number(row.SMA_200 ?? 0).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: 'inline-flex',
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: 999,
+                                backgroundColor: (row.LongTermTrend ?? '').toLowerCase().includes('bullish') ? 'rgba(22, 163, 74, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                                color: (row.LongTermTrend ?? '').toLowerCase().includes('bullish') ? '#15803d' : '#b91c1c',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {row.LongTermTrend ?? '-'}
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            {Array.isArray(row.DetectedSignals) && row.DetectedSignals.length > 0
+                              ? row.DetectedSignals.join(', ')
+                              : (row.DetectedSignals ? String(row.DetectedSignals) : '-')}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7}>
+                          <Typography variant="body2" color="text.secondary">
+                            No technical analysis data available for this portfolio.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </Box>
         ) : (
           <Typography variant="body1" color="text.secondary">

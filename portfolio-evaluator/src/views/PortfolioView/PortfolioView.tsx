@@ -4,6 +4,7 @@ import {
   Button,
   CircularProgress,
   Divider,
+  IconButton,
   List,
   ListItemButton,
   ListItemText,
@@ -16,9 +17,11 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+import { useMemo } from 'react'
 import { CreatePortfolioView } from '../CreatePortfolioView/CreatePortfolioView.tsx'
 import { EditPortfolioView } from '../EditPortfolioView/EditPortfolioView'
 import { InstrumentView } from '../InstrumentView/InstrumentView'
+import { PortfolioMemoryStore } from '../../models/PortfolioMemoryStore'
 import { getPortfolioDetail, getPortfolios, type PortfolioDetail } from './portfolioApi'
 
 type Props = {
@@ -26,6 +29,7 @@ type Props = {
 }
 
 export function PortfolioView({ title }: Props) {
+  const portfolioStore = useMemo(() => new PortfolioMemoryStore(), [])
   const [portfolioNames, setPortfolioNames] = useState<string[]>([])
   const [selectedName, setSelectedName] = useState<string | null>(null)
   const [selectedDetail, setSelectedDetail] = useState<PortfolioDetail | null>(null)
@@ -43,7 +47,8 @@ export function PortfolioView({ title }: Props) {
 
     try {
       const names = await getPortfolios()
-      setPortfolioNames(names)
+      portfolioStore.setPortfolioNames(names)
+      setPortfolioNames(portfolioStore.getNames())
 
       if (names.length > 0) {
         setSelectedName((current) => current ?? names[0])
@@ -88,34 +93,37 @@ export function PortfolioView({ title }: Props) {
 
   const handlePortfolioCreated = async (name: string) => {
     setError(null)
-    await loadPortfolios()
-    setSelectedName(name)
+    const created = portfolioStore.create(name)
+    setPortfolioNames(portfolioStore.getNames())
+    setSelectedName(created.name)
+    setSelectedDetail(created.toDetail())
   }
 
-  const handlePortfolioRenamed = async (newName: string) => {
+  const handlePortfolioRenamed = async (currentName: string, newName: string, remainingTickers: string[]) => {
     setError(null)
-    await loadPortfolios()
-    setSelectedName(newName)
+    const updated = portfolioStore.rename(currentName, newName, remainingTickers)
+    if (!updated) {
+      return
+    }
+
+    setPortfolioNames(portfolioStore.getNames())
+    setSelectedName(updated.name)
+    setSelectedDetail(updated.toDetail())
   }
 
-  const handleAddInstrumentSuccess = async () => {
-    const names = await getPortfolios()
-    setPortfolioNames(names)
-
-    if (names.length === 0) {
-      setSelectedName(null)
+  const handleAddInstrumentSuccess = async (symbol: string, name?: string) => {
+    if (!selectedName) {
       setSelectedDetail(null)
       return
     }
 
-    const nextSelectedName = selectedName && names.includes(selectedName)
-      ? selectedName
-      : names[0]
+    const updated = portfolioStore.addInstrument(selectedName, symbol, name)
+    if (!updated) {
+      return
+    }
 
-    setSelectedName(nextSelectedName)
-
-    const refreshedDetail = await getPortfolioDetail(nextSelectedName)
-    setSelectedDetail(refreshedDetail)
+    setPortfolioNames(portfolioStore.getNames())
+    setSelectedDetail(updated.toDetail())
   }
 
   type InstrumentTableRow = {
@@ -223,38 +231,14 @@ export function PortfolioView({ title }: Props) {
               </ListItemButton>
             ) : (
               portfolioNames.map((name) => (
-                <Box
+                <ListItemButton
                   key={name}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    borderRadius: 2,
-                    ml: 0,
-                    mr: 0,
-                  }}
+                  selected={selectedName === name}
+                  onClick={() => setSelectedName(name)}
+                  className="portfolio-item"
                 >
-                  <ListItemButton
-                    selected={selectedName === name}
-                    onClick={() => setSelectedName(name)}
-                    className="portfolio-item"
-                    sx={{ flexGrow: 1, borderRadius: 2, mr: 0}}
-                  >
-                    <ListItemText primary={name} />
-                  </ListItemButton>
-
-                  <Button
-                    variant="text"
-                    size="small"
-                    onClick={() => {
-                      setPortfolioToEdit(name)
-                      setIsEditDialogOpen(true)
-                    }}
-                    sx={{ minWidth: 0, px: 1, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
-                  >
-                    Edit
-                  </Button>
-                </Box>
+                  <ListItemText primary={name} />
+                </ListItemButton>
               ))
             )}
           </List>
@@ -263,9 +247,29 @@ export function PortfolioView({ title }: Props) {
 
       <Paper className="portfolio-panel right-panel" elevation={0}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h5" className="panel-title">
-            {selectedName ?? 'Portfolio'}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h5" className="panel-title">
+              {selectedName ?? 'Portfolio'}
+            </Typography>
+
+            {selectedName && (
+              <IconButton
+                size="small"
+                aria-label="Edit portfolio"
+                onClick={() => {
+                  setPortfolioToEdit(selectedName)
+                  setIsEditDialogOpen(true)
+                }}
+                sx={{
+                  border: '1px solid rgba(61, 89, 102, 0.18)',
+                  backgroundColor: 'rgba(31, 90, 117, 0.04)',
+                  '&:hover': { backgroundColor: 'rgba(31, 90, 117, 0.08)' },
+                }}
+              >
+                ✎
+              </IconButton>
+            )}
+          </Box>
 
           {selectedName && (
             <Button

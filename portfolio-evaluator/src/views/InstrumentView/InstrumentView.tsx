@@ -14,7 +14,7 @@ type Props = {
   open: boolean
   selectedName: string | null
   onClose: () => void
-  onAdded: () => Promise<void> | void
+  onAdded: (symbol: string, name?: string) => Promise<void> | void
 }
 
 export function InstrumentView({ open, selectedName, onClose, onAdded }: Props) {
@@ -83,7 +83,7 @@ export function InstrumentView({ open, selectedName, onClose, onAdded }: Props) 
       await addInstrumentToPortfolio(selectedName, normalizedInstrument)
       resetForm()
       onClose()
-      await onAdded()
+      await onAdded(normalizedInstrument, instrumentSearchResult?.Name ?? normalizedInstrument)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not add the instrument.')
     } finally {
