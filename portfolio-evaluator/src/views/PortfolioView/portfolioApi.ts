@@ -174,7 +174,7 @@ export const getPortfolios = async (): Promise<string[]> => {
 }
 
 export const getPortfolioDetail = async (name: string): Promise<PortfolioDetail> => {
-  const response = await fetch(`http://localhost:5000/api/portfolios/${encodeURIComponent(name)}`)
+  const response = await fetch(`http://localhost:5000/api/portfolio/simple/${encodeURIComponent(name)}`)
   if (!response.ok) throw new Error(`Error ${response.status}`)
 
   const payload = await response.json()
