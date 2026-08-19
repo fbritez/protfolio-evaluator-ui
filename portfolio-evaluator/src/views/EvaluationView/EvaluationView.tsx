@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import { getEvaluationDetail, type EvaluationPortfolioDetail } from './evaluationApi'
 
-type TickerMetrics = NonNullable<EvaluationPortfolioDetail['rows']>[number]
+type InstrumentMetrics = NonNullable<EvaluationPortfolioDetail['rows']>[number]
 
 const getTrendCell = (trend: string) => {
   const normalized = trend.toLowerCase()
@@ -166,7 +166,7 @@ export function EvaluationView() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Ticker</TableCell>
+                    <TableCell>Instrument</TableCell>
                     <TableCell>Current Price</TableCell>
                     <TableCell>Price Month Ago</TableCell>
                     <TableCell>SMA 200</TableCell>
@@ -176,9 +176,9 @@ export function EvaluationView() {
                 </TableHead>
                 <TableBody>
                   {(selectedDetail.rows ?? []).length > 0 ? (
-                    (selectedDetail.rows ?? []).map((row: TickerMetrics) => (
-                      <TableRow key={row.Ticker} hover>
-                        <TableCell>{row.Ticker}</TableCell>
+                    (selectedDetail.rows ?? []).map((row: InstrumentMetrics) => (
+                      <TableRow key={row.Symbol} hover>
+                        <TableCell>{row.Symbol}</TableCell>
                         <TableCell>{`$${Number(row.CurrentPrice ?? 0).toFixed(2)}`}</TableCell>
                         <TableCell>{`$${Number(row.PriceMonthAgo ?? 0).toFixed(2)}`}</TableCell>
                         <TableCell>{`$${Number(row.SMA200 ?? 0).toFixed(2)}`}</TableCell>

@@ -1,5 +1,5 @@
-export type TickerMetrics = {
-  Ticker: string
+export type InstrumentMetrics = {
+  Symbol: string
   CurrentPrice: number | string
   PriceMonthAgo: number | string
   SMA200: number | string
@@ -13,7 +13,7 @@ export type EvaluationPortfolioDetail = {
   symbols?: string[]
   holdings?: Array<{ ticker?: string; symbol?: string; name?: string }>
   positions?: Array<{ ticker?: string; symbol?: string; name?: string }>
-  rows?: TickerMetrics[]
+  rows?: InstrumentMetrics[]
 }
 
 const readValue = (obj: Record<string, unknown>, keys: string[]): unknown => {
@@ -63,7 +63,7 @@ export const extractTickers = (payload: unknown): string[] => {
   return []
 }
 
-export const extractTickerRows = (payload: unknown): TickerMetrics[] => {
+export const extractInstrumentRows = (payload: unknown): InstrumentMetrics[] => {
   if (!payload || typeof payload !== 'object') {
     return []
   }
@@ -86,13 +86,13 @@ export const extractTickerRows = (payload: unknown): TickerMetrics[] => {
           if (!item || typeof item !== 'object') return null
 
           const row = item as Record<string, unknown>
-          const ticker =
+          const instrumentSymbol =
             (readValue(row, ['Ticker', 'ticker', 'Symbol', 'symbol']) as string | undefined) ?? ''
 
-          if (!ticker) return null
+          if (!instrumentSymbol) return null
 
           return {
-            Ticker: String(ticker),
+            Symbol: String(instrumentSymbol),
             CurrentPrice: readValue(row, ['CurrentPrice', 'currentPrice', 'Price', 'price']) ?? '',
             PriceMonthAgo: readValue(row, ['PriceMonthAgo', 'priceMonthAgo', 'PriceMonth', 'priceMonth']) ?? '',
             SMA200: readValue(row, ['SMA200', 'sma200', 'Sma200']) ?? '',
@@ -100,7 +100,7 @@ export const extractTickerRows = (payload: unknown): TickerMetrics[] => {
             Variation: readValue(row, ['Variation', 'variation', 'Var']) ?? '',
           }
         })
-        .filter((item): item is TickerMetrics => Boolean(item && item.Ticker))
+        .filter((item): item is InstrumentMetrics => Boolean(item && item.Symbol))
 
       if (rows.length > 0) return rows
     }
@@ -115,7 +115,7 @@ export const getEvaluationDetail = async (name: string): Promise<EvaluationPortf
 
   const payload = await response.json()
   const detail = payload && typeof payload === 'object' ? (payload as EvaluationPortfolioDetail) : {}
-  const rows = extractTickerRows(payload)
+  const rows = extractInstrumentRows(payload)
   const tickers = extractTickers(payload)
 
   return {

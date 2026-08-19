@@ -2,22 +2,23 @@ import { useEffect, useState } from 'react'
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
   List,
   ListItemButton,
   ListItemText,
   Paper,
-  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from '@mui/material'
 import { CreatePortfolioView } from '../CreatePortfolioView/CreatePortfolioView.tsx'
-import { addTickerToPortfolio, getPortfolioDetail, getPortfolios, type PortfolioDetail } from './portfolioApi'
+import { InstrumentView } from '../InstrumentView/InstrumentView'
+import { getPortfolioDetail, getPortfolios, type PortfolioDetail } from './portfolioApi'
 
 type Props = {
   title: string
@@ -31,9 +32,7 @@ export function PortfolioView({ title }: Props) {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isAddTickerDialogOpen, setIsAddTickerDialogOpen] = useState(false)
-  const [newTicker, setNewTicker] = useState('')
-  const [addingTicker, setAddingTicker] = useState(false)
+  const [isAddInstrumentDialogOpen, setIsAddInstrumentDialogOpen] = useState(false)
 
   const loadPortfolios = async () => {
     setLoadingList(true)
@@ -90,33 +89,59 @@ export function PortfolioView({ title }: Props) {
     setSelectedName(name)
   }
 
-  const handleAddTickerToPortfolio = async () => {
-    if (!selectedName) {
-      setError('Please select a portfolio before adding an instrument.')
+  const handleAddInstrumentSuccess = async () => {
+    const names = await getPortfolios()
+    setPortfolioNames(names)
+
+    if (names.length === 0) {
+      setSelectedName(null)
+      setSelectedDetail(null)
       return
     }
 
-    const trimmedTicker = newTicker.trim()
-    if (!trimmedTicker) {
-      setError('Instrument is required.')
-      return
-    }
+    const nextSelectedName = selectedName && names.includes(selectedName)
+      ? selectedName
+      : names[0]
 
-    setAddingTicker(true)
-    setError(null)
+    setSelectedName(nextSelectedName)
 
-    try {
-      await addTickerToPortfolio(selectedName, trimmedTicker)
-      setIsAddTickerDialogOpen(false)
-      setNewTicker('')
-      await loadPortfolios()
-      const refreshedDetail = await getPortfolioDetail(selectedName)
-      setSelectedDetail(refreshedDetail)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not add the instrument.')
-    } finally {
-      setAddingTicker(false)
-    }
+    const refreshedDetail = await getPortfolioDetail(nextSelectedName)
+    setSelectedDetail(refreshedDetail)
+  }
+
+  type InstrumentTableRow = {
+    Symbol?: string
+    Name?: string
+    '52WeekHigh'?: number | string
+    '52WeekLow'?: number | string
+    Currency?: string
+    CurrentPrice?: number | string
+    DividendYield?: number | string
+    Industry?: string
+    Sector?: string
+  }
+
+  const instrumentRows: InstrumentTableRow[] = selectedDetail?.instruments && selectedDetail.instruments.length > 0
+    ? (selectedDetail.instruments as InstrumentTableRow[])
+    : (selectedDetail?.tickers ?? []).map((instrumentSymbol) => ({ Symbol: instrumentSymbol, Name: instrumentSymbol }))
+
+  const formatCurrency = (value: number | string | undefined) => {
+    const numericValue = typeof value === 'number' ? value : Number(value)
+    if (!Number.isFinite(numericValue)) return '-'
+
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(numericValue)
+  }
+
+  const formatPercent = (value: number | string | undefined) => {
+    const numericValue = typeof value === 'number' ? value : Number(value)
+    if (!Number.isFinite(numericValue)) return '-'
+
+    return `${numericValue.toFixed(2)}%`
   }
 
   return (
@@ -173,7 +198,7 @@ export function PortfolioView({ title }: Props) {
             <Button
               variant="outlined"
               size="small"
-              onClick={() => setIsAddTickerDialogOpen(true)}
+              onClick={() => setIsAddInstrumentDialogOpen(true)}
               sx={{ borderRadius: 2, fontWeight: 700 }}
             >
               + Instrument
@@ -193,17 +218,42 @@ export function PortfolioView({ title }: Props) {
               Instruments
             </Typography>
 
-            <Box className="ticker-list" sx={{ mt: 1 }}>
-              {(selectedDetail.tickers ?? []).length > 0 ? (
-                (selectedDetail.tickers ?? []).map((ticker) => (
-                  <Chip key={ticker} label={ticker} className="ticker-chip" />
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No instruments available for this portfolio.
-                </Typography>
-              )}
-            </Box>
+            {instrumentRows.length > 0 ? (
+              <TableContainer sx={{ mt: 2, maxHeight: 420 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>Symbol</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>Name</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>Currency</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>Industry</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>Sector</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>Dividend Yield</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>52W High</TableCell>
+                      <TableCell sx={{ fontSize: '0.78rem' }}>52W Low</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {instrumentRows.map((instrument: InstrumentTableRow, index) => (
+                      <TableRow key={`${instrument.Symbol ?? 'instrument'}-${index}`} hover>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Symbol || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Name || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Currency || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Industry || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Sector || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{formatPercent(instrument.DividendYield)}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{formatCurrency(instrument['52WeekHigh'])}</TableCell>
+                        <TableCell sx={{ fontSize: '0.78rem' }}>{formatCurrency(instrument['52WeekLow'])}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                No instruments available for this portfolio.
+              </Typography>
+            )}
           </Box>
         ) : (
           <Typography variant="body1" color="text.secondary">
@@ -218,34 +268,12 @@ export function PortfolioView({ title }: Props) {
         onCreated={handlePortfolioCreated}
       />
 
-      <Dialog open={isAddTickerDialogOpen} onClose={() => setIsAddTickerDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add instrument</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Instrument"
-            fullWidth
-            variant="outlined"
-            value={newTicker}
-            onChange={(event) => setNewTicker(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                void handleAddTickerToPortfolio()
-              }
-            }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setIsAddTickerDialogOpen(false)} color="inherit">
-            Cancel
-          </Button>
-          <Button onClick={() => void handleAddTickerToPortfolio()} variant="contained" disabled={addingTicker}>
-            {addingTicker ? 'Adding...' : 'Add'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <InstrumentView
+        open={isAddInstrumentDialogOpen}
+        selectedName={selectedName}
+        onClose={() => setIsAddInstrumentDialogOpen(false)}
+        onAdded={handleAddInstrumentSuccess}
+      />
 
       {error ? (
         <Box className="error-box" sx={{ mt: 2, gridColumn: '1 / -1' }}>
