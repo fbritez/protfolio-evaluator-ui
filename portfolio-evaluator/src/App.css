@@ -1,0 +1,100 @@
+.app-shell {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f6f7f6 0%, #edf3f2 35%, #f1f3f4 100%);
+}
+
+.topbar {
+  border-bottom: 1px solid rgba(90, 102, 111, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+}
+
+.MuiToolbar-root {
+  min-height: 76px !important;
+}
+
+.page-content {
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+.portfolio-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.portfolio-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(87, 100, 109, 0.10);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 12px 22px rgba(34, 45, 52, 0.06);
+}
+
+.left-panel,
+.right-panel,
+.evaluation-panel {
+  min-height: 520px;
+}
+
+.panel-title {
+  font-weight: 800 !important;
+  color: #405365;
+  margin-bottom: 8px !important;
+}
+
+.portfolio-list {
+  margin-top: 16px;
+}
+
+.portfolio-item {
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.portfolio-item.Mui-selected {
+  background: linear-gradient(135deg, rgba(47, 79, 79, 0.08), rgba(168, 180, 184, 0.15)) !important;
+}
+
+.loading-box {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-label {
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+  color: #405365;
+}
+
+.ticker-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ticker-chip {
+  background: linear-gradient(135deg, #e8f0ef 0%, #edf0f2 100%);
+  color: #1e2a2f;
+  font-weight: 700;
+  border: 1px solid rgba(94, 109, 118, 0.08);
+}
+
+.evaluation-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.error-box {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-left: 4px solid #e8a4a4;
+  background: rgba(255, 222, 222, 0.45);
+  border-radius: 12px;
+}
