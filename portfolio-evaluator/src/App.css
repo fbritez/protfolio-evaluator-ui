@@ -1,12 +1,13 @@
 .app-shell {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f6f7f6 0%, #edf3f2 35%, #f1f3f4 100%);
+  background: radial-gradient(circle at top left, rgba(117, 176, 202, 0.14), transparent 28%),
+    linear-gradient(135deg, #f4f8fb 0%, #edf3f7 45%, #eef1f5 100%);
 }
 
 .topbar {
-  border-bottom: 1px solid rgba(90, 102, 111, 0.12);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
+  background: rgba(13, 31, 46, 0.78);
+  border-bottom: 1px solid rgba(143, 171, 189, 0.18);
+  backdrop-filter: blur(14px);
 }
 
 .MuiToolbar-root {
@@ -25,11 +26,11 @@
 }
 
 .portfolio-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(87, 100, 109, 0.10);
-  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(53, 73, 85, 0.08);
+  border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 12px 22px rgba(34, 45, 52, 0.06);
+  box-shadow: 0 18px 34px rgba(17, 42, 53, 0.06);
 }
 
 .left-panel,
@@ -40,7 +41,7 @@
 
 .panel-title {
   font-weight: 800 !important;
-  color: #405365;
+  color: #1b2e3a !important;
   margin-bottom: 8px !important;
 }
 
@@ -51,10 +52,16 @@
 .portfolio-item {
   border-radius: 14px;
   margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.portfolio-item:hover {
+  background: rgba(31, 90, 117, 0.04);
 }
 
 .portfolio-item.Mui-selected {
-  background: linear-gradient(135deg, rgba(47, 79, 79, 0.08), rgba(168, 180, 184, 0.15)) !important;
+  background: linear-gradient(135deg, rgba(31, 90, 117, 0.10), rgba(115, 168, 197, 0.18)) !important;
+  color: #123d56 !important;
 }
 
 .loading-box {
@@ -67,7 +74,7 @@
 .section-label {
   font-weight: 700 !important;
   margin-bottom: 8px !important;
-  color: #405365;
+  color: #294658;
 }
 
 .ticker-list {
@@ -78,10 +85,10 @@
 }
 
 .ticker-chip {
-  background: linear-gradient(135deg, #e8f0ef 0%, #edf0f2 100%);
-  color: #1e2a2f;
+  background: linear-gradient(135deg, #edf7fb 0%, #eef2f7 100%);
+  color: #21455d;
   font-weight: 700;
-  border: 1px solid rgba(94, 109, 118, 0.08);
+  border: 1px solid rgba(87, 118, 137, 0.12);
 }
 
 .evaluation-panel {
@@ -94,7 +101,7 @@
 .error-box {
   margin-bottom: 20px;
   padding: 16px 20px;
-  border-left: 4px solid #e8a4a4;
-  background: rgba(255, 222, 222, 0.45);
+  border-left: 4px solid #d97171;
+  background: rgba(255, 240, 240, 0.8);
   border-radius: 12px;
 }

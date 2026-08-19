@@ -50,6 +50,34 @@ export function EvaluationView() {
   const [loadingList, setLoadingList] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sortConfig, setSortConfig] = useState<{ key: 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation'; direction: 'asc' | 'desc' }>({
+    key: 'Symbol',
+    direction: 'asc',
+  })
+
+  const handleSort = (key: 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation') => {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+    }))
+  }
+
+  const getSortValue = (row: InstrumentMetrics, key: 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation') => {
+    if (key === 'Trend') return String(row.Trend ?? '').toLowerCase()
+    if (key === 'Variation') return Number(row.Variation ?? 0)
+    if (key === 'CurrentPrice' || key === 'PriceMonthAgo' || key === 'SMA200') return Number(row[key] ?? 0)
+    return String(row.Symbol ?? '').toLowerCase()
+  }
+
+  const sortedRows = [...(selectedDetail?.rows ?? [])].sort((a, b) => {
+    const left = getSortValue(a, sortConfig.key)
+    const right = getSortValue(b, sortConfig.key)
+
+    if (left === right) return 0
+
+    const comparison = left > right ? 1 : -1
+    return sortConfig.direction === 'asc' ? comparison : -comparison
+  })
 
   useEffect(() => {
     const loadPortfolios = async () => {
@@ -166,17 +194,30 @@ export function EvaluationView() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Instrument</TableCell>
-                    <TableCell>Current Price</TableCell>
-                    <TableCell>Price Month Ago</TableCell>
-                    <TableCell>SMA 200</TableCell>
-                    <TableCell>Trend</TableCell>
-                    <TableCell>Variation</TableCell>
+                    {[
+                      ['Symbol', 'Instrument'],
+                      ['CurrentPrice', 'Current Price'],
+                      ['PriceMonthAgo', 'Price Month Ago'],
+                      ['SMA200', 'SMA 200'],
+                      ['Trend', 'Trend'],
+                      ['Variation', 'Variation'],
+                    ].map(([key, label]) => (
+                      <TableCell
+                        key={key}
+                        sx={{ cursor: 'pointer', userSelect: 'none' }}
+                        onClick={() => handleSort(key as 'Symbol' | 'CurrentPrice' | 'PriceMonthAgo' | 'SMA200' | 'Trend' | 'Variation')}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <span>{label}</span>
+                          {sortConfig.key === key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                        </Box>
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(selectedDetail.rows ?? []).length > 0 ? (
-                    (selectedDetail.rows ?? []).map((row: InstrumentMetrics) => (
+                  {sortedRows.length > 0 ? (
+                    sortedRows.map((row: InstrumentMetrics) => (
                       <TableRow key={row.Symbol} hover>
                         <TableCell>{row.Symbol}</TableCell>
                         <TableCell>{`$${Number(row.CurrentPrice ?? 0).toFixed(2)}`}</TableCell>

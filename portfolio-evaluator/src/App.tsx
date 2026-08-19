@@ -10,37 +10,43 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#2F4F4F',
-      light: '#dfeae7',
-      dark: '#1d3438',
+      main: '#1f5a75',
+      light: '#dfeef6',
+      dark: '#123d56',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#A8B4B8',
-      light: '#edf1f3',
-      dark: '#768892',
-      contrastText: '#1a2430',
+      main: '#73a8c5',
+      light: '#edf6fb',
+      dark: '#4e7a96',
+      contrastText: '#ffffff',
     },
     success: {
-      main: '#CFE2D8',
+      main: '#67b99a',
     },
     warning: {
-      main: '#E7D8C5',
+      main: '#f2c57c',
     },
     background: {
-      default: '#f3f5f4',
+      default: '#eef4f8',
       paper: '#ffffff',
     },
     text: {
-      primary: '#1e2a2f',
-      secondary: '#5d6d72',
+      primary: '#1d2b36',
+      secondary: '#5a6f7d',
     },
   },
   shape: {
     borderRadius: 18,
   },
   typography: {
-    fontFamily: ['"Segoe UI"', 'Roboto', 'sans-serif'].join(','),
+    fontFamily: ['Inter', '"Segoe UI"', 'Roboto', 'sans-serif'].join(','),
+    h5: {
+      fontWeight: 800,
+    },
+    h6: {
+      fontWeight: 800,
+    },
   },
   components: {
     MuiButton: {
@@ -50,13 +56,21 @@ const theme = createTheme({
           borderRadius: 999,
           fontWeight: 700,
           boxShadow: 'none',
+          letterSpacing: '0.01em',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 14px 30px rgba(108, 126, 144, 0.12)',
+          boxShadow: '0 10px 26px rgba(18, 50, 64, 0.08)',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          boxShadow: 'none',
         },
       },
     },
@@ -82,9 +96,12 @@ function App() {
                   color="primary"
                   onClick={() => setView('portfolios')}
                   sx={{
-                    background: view === 'portfolios' ? 'linear-gradient(135deg, #2F4F4F 0%, #7F9BA1 100%)' : 'transparent',
-                    color: view === 'portfolios' ? '#ffffff' : '#425c62',
-                    '&:hover': { background: view === 'portfolios' ? 'linear-gradient(135deg, #2F4F4F 0%, #7F9BA1 100%)' : 'rgba(47, 79, 79, 0.06)' },
+                    background: view === 'portfolios' ? 'linear-gradient(135deg, #1f5a75 0%, #5d8ea6 100%)' : 'rgba(31, 90, 117, 0.04)',
+                    color: view === 'portfolios' ? '#ffffff' : '#1f5a75',
+                    '&:hover': {
+                      background: view === 'portfolios' ? 'linear-gradient(135deg, #1f5a75 0%, #5d8ea6 100%)' : 'rgba(31, 90, 117, 0.08)',
+                    },
+                    px: 2,
                   }}
                 >
                   Portfolios
@@ -94,9 +111,12 @@ function App() {
                   color="secondary"
                   onClick={() => setView('evaluacion')}
                   sx={{
-                    background: view === 'evaluacion' ? 'linear-gradient(135deg, #D9D2C7 0%, #B8C4C8 100%)' : 'transparent',
-                    color: view === 'evaluacion' ? '#1d2a30' : '#51656c',
-                    '&:hover': { background: view === 'evaluacion' ? 'linear-gradient(135deg, #D9D2C7 0%, #B8C4C8 100%)' : 'rgba(168, 180, 184, 0.10)' },
+                    background: view === 'evaluacion' ? 'linear-gradient(135deg, #73a8c5 0%, #a7d0e6 100%)' : 'rgba(115, 168, 197, 0.05)',
+                    color: view === 'evaluacion' ? '#103149' : '#4c6879',
+                    '&:hover': {
+                      background: view === 'evaluacion' ? 'linear-gradient(135deg, #73a8c5 0%, #a7d0e6 100%)' : 'rgba(115, 168, 197, 0.10)',
+                    },
+                    px: 2,
                   }}
                 >
                   Evaluación

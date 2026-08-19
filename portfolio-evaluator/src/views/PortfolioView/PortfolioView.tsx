@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material'
 import { CreatePortfolioView } from '../CreatePortfolioView/CreatePortfolioView.tsx'
+import { EditPortfolioView } from '../EditPortfolioView/EditPortfolioView'
 import { InstrumentView } from '../InstrumentView/InstrumentView'
 import { getPortfolioDetail, getPortfolios, type PortfolioDetail } from './portfolioApi'
 
@@ -32,6 +33,8 @@ export function PortfolioView({ title }: Props) {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [portfolioToEdit, setPortfolioToEdit] = useState<string | null>(null)
   const [isAddInstrumentDialogOpen, setIsAddInstrumentDialogOpen] = useState(false)
 
   const loadPortfolios = async () => {
@@ -89,6 +92,12 @@ export function PortfolioView({ title }: Props) {
     setSelectedName(name)
   }
 
+  const handlePortfolioRenamed = async (newName: string) => {
+    setError(null)
+    await loadPortfolios()
+    setSelectedName(newName)
+  }
+
   const handleAddInstrumentSuccess = async () => {
     const names = await getPortfolios()
     setPortfolioNames(names)
@@ -124,6 +133,46 @@ export function PortfolioView({ title }: Props) {
   const instrumentRows: InstrumentTableRow[] = selectedDetail?.instruments && selectedDetail.instruments.length > 0
     ? (selectedDetail.instruments as InstrumentTableRow[])
     : (selectedDetail?.tickers ?? []).map((instrumentSymbol) => ({ Symbol: instrumentSymbol, Name: instrumentSymbol }))
+
+  type InstrumentSortKey =
+    | 'Symbol'
+    | 'Name'
+    | 'Currency'
+    | 'Industry'
+    | 'Sector'
+    | 'DividendYield'
+    | '52WeekHigh'
+    | '52WeekLow'
+
+  const [sortConfig, setSortConfig] = useState<{ key: InstrumentSortKey; direction: 'asc' | 'desc' }>({
+    key: 'Symbol',
+    direction: 'asc',
+  })
+
+  const getSortableCellValue = (row: InstrumentTableRow, key: InstrumentSortKey) => {
+    const value = row[key]
+
+    if (typeof value === 'number') return value
+    if (typeof value === 'string') return value.trim().toLowerCase()
+    return ''
+  }
+
+  const sortedInstrumentRows = [...instrumentRows].sort((a, b) => {
+    const left = getSortableCellValue(a, sortConfig.key)
+    const right = getSortableCellValue(b, sortConfig.key)
+
+    if (left === right) return 0
+
+    const comparison = left > right ? 1 : -1
+    return sortConfig.direction === 'asc' ? comparison : -comparison
+  })
+
+  const handleSort = (key: InstrumentSortKey) => {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+    }))
+  }
 
   const formatCurrency = (value: number | string | undefined) => {
     const numericValue = typeof value === 'number' ? value : Number(value)
@@ -174,14 +223,38 @@ export function PortfolioView({ title }: Props) {
               </ListItemButton>
             ) : (
               portfolioNames.map((name) => (
-                <ListItemButton
+                <Box
                   key={name}
-                  selected={selectedName === name}
-                  onClick={() => setSelectedName(name)}
-                  className="portfolio-item"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    borderRadius: 2,
+                    ml: 0,
+                    mr: 0,
+                  }}
                 >
-                  <ListItemText primary={name} />
-                </ListItemButton>
+                  <ListItemButton
+                    selected={selectedName === name}
+                    onClick={() => setSelectedName(name)}
+                    className="portfolio-item"
+                    sx={{ flexGrow: 1, borderRadius: 2, mr: 0}}
+                  >
+                    <ListItemText primary={name} />
+                  </ListItemButton>
+
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setPortfolioToEdit(name)
+                      setIsEditDialogOpen(true)
+                    }}
+                    sx={{ minWidth: 0, px: 1, py: 0.5, fontSize: '0.75rem', fontWeight: 700 }}
+                  >
+                    Edit
+                  </Button>
+                </Box>
               ))
             )}
           </List>
@@ -223,18 +296,31 @@ export function PortfolioView({ title }: Props) {
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>Symbol</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>Name</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>Currency</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>Industry</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>Sector</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>Dividend Yield</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>52W High</TableCell>
-                      <TableCell sx={{ fontSize: '0.78rem' }}>52W Low</TableCell>
+                      {[
+                        ['Symbol', 'Symbol'],
+                        ['Name', 'Name'],
+                        ['Currency', 'Currency'],
+                        ['Industry', 'Industry'],
+                        ['Sector', 'Sector'],
+                        ['DividendYield', 'Dividend Yield'],
+                        ['52WeekHigh', '52W High'],
+                        ['52WeekLow', '52W Low'],
+                      ].map(([key, label]) => (
+                        <TableCell
+                          key={key}
+                          sx={{ fontSize: '0.78rem', cursor: 'pointer', userSelect: 'none' }}
+                          onClick={() => handleSort(key as InstrumentSortKey)}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <span>{label}</span>
+                            {sortConfig.key === key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                          </Box>
+                        </TableCell>
+                      ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {instrumentRows.map((instrument: InstrumentTableRow, index) => (
+                    {sortedInstrumentRows.map((instrument: InstrumentTableRow, index) => (
                       <TableRow key={`${instrument.Symbol ?? 'instrument'}-${index}`} hover>
                         <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Symbol || '-'}</TableCell>
                         <TableCell sx={{ fontSize: '0.78rem' }}>{instrument.Name || '-'}</TableCell>
@@ -266,6 +352,16 @@ export function PortfolioView({ title }: Props) {
         open={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handlePortfolioCreated}
+      />
+
+      <EditPortfolioView
+        open={isEditDialogOpen}
+        currentName={portfolioToEdit}
+        onClose={() => {
+          setIsEditDialogOpen(false)
+          setPortfolioToEdit(null)
+        }}
+        onRenamed={handlePortfolioRenamed}
       />
 
       <InstrumentView
