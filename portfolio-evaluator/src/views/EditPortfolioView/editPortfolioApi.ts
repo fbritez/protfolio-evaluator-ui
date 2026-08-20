@@ -1,3 +1,5 @@
+import { buildApiUrl } from '../../config/api'
+
 export const renamePortfolio = async (
   currentName: string,
   newName: string,
@@ -20,7 +22,7 @@ export const renamePortfolio = async (
     tickers: Array.from(new Set(remainingTickers.map((ticker) => ticker.trim()).filter(Boolean))),
   }
 
-  const response = await fetch('http://localhost:5000/api/portfolios', {
+  const response = await fetch(buildApiUrl('/api/portfolios'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

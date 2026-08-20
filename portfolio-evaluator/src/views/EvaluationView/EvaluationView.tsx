@@ -17,6 +17,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+import { buildApiUrl } from '../../config/api'
 import { getEvaluationDetail, type EvaluationPortfolioDetail } from './evaluationApi'
 
 type InstrumentMetrics = NonNullable<EvaluationPortfolioDetail['rows']>[number]
@@ -90,7 +91,7 @@ export function EvaluationView() {
       setError(null)
 
       try {
-        const response = await fetch('http://localhost:5000/api/portfolios')
+        const response = await fetch(buildApiUrl('/api/portfolios'))
         if (!response.ok) throw new Error(`Error ${response.status}`)
 
         const payload = await response.json()

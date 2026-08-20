@@ -1,3 +1,5 @@
+import { buildApiUrl } from '../../config/api'
+
 export type InstrumentMetrics = {
   Symbol: string
   CurrentPrice: number | string
@@ -193,7 +195,7 @@ export const extractTechnicalAnalysisRows = (payload: unknown): TechnicalAnalysi
 }
 
 export const getEvaluationDetail = async (name: string): Promise<EvaluationPortfolioDetail> => {
-  const response = await fetch(`http://localhost:5000/api/portfolios/${encodeURIComponent(name)}`)
+  const response = await fetch(buildApiUrl(`/api/portfolios/${encodeURIComponent(name)}`))
   if (!response.ok) throw new Error(`Error ${response.status}`)
 
   const payload = await response.json()

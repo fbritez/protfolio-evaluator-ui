@@ -1,3 +1,4 @@
+import { buildApiUrl } from '../../config/api'
 import { getPortfolioDetail } from '../PortfolioView/portfolioApi'
 
 export type InstrumentSearchResult = {
@@ -24,7 +25,7 @@ export const searchInstrument = async (ticker: string): Promise<InstrumentSearch
   if (!normalizedTicker) return null
 
   const response = await fetch(
-    `http://localhost:5000/api/searchInstrument/${encodeURIComponent(normalizedTicker)}`,
+    buildApiUrl(`/api/searchInstrument/${encodeURIComponent(normalizedTicker)}`),
   )
 
   if (!response.ok) {
@@ -83,7 +84,7 @@ export const addInstrumentToPortfolio = async (name: string, instrument: string)
   const currentDetail = await getPortfolioDetail(name)
   const nextTickers = Array.from(new Set([...(currentDetail.tickers ?? []), normalizedInstrument]))
 
-  const response = await fetch('http://localhost:5000/api/portfolios', {
+  const response = await fetch(buildApiUrl('/api/portfolios'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

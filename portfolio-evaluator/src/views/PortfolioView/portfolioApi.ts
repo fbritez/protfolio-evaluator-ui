@@ -1,3 +1,5 @@
+import { buildApiUrl } from '../../config/api'
+
 export type PortfolioInstrument = {
   Symbol?: string
   symbol?: string
@@ -166,7 +168,7 @@ export const extractTickers = (payload: unknown): string[] => {
 }
 
 export const getPortfolios = async (): Promise<string[]> => {
-  const response = await fetch('http://localhost:5000/api/portfolios')
+  const response = await fetch(buildApiUrl('/api/portfolios'))
   if (!response.ok) throw new Error(`Error ${response.status}`)
 
   const payload = await response.json()
@@ -174,7 +176,7 @@ export const getPortfolios = async (): Promise<string[]> => {
 }
 
 export const getPortfolioDetail = async (name: string): Promise<PortfolioDetail> => {
-  const response = await fetch(`http://localhost:5000/api/portfolio/simple/${encodeURIComponent(name)}`)
+  const response = await fetch(buildApiUrl(`/api/portfolio/simple/${encodeURIComponent(name)}`))
   if (!response.ok) throw new Error(`Error ${response.status}`)
 
   const payload = await response.json()
@@ -202,7 +204,7 @@ export const searchInstrument = async (ticker: string): Promise<InstrumentSearch
   if (!normalizedTicker) return null
 
   const response = await fetch(
-    `http://localhost:5000/api/searchInstrument/${encodeURIComponent(normalizedTicker)}`,
+    buildApiUrl(`/api/searchInstrument/${encodeURIComponent(normalizedTicker)}`),
   )
 
   if (!response.ok) {
@@ -259,7 +261,7 @@ export const addTickerToPortfolio = async (name: string, ticker: string) => {
   const currentDetail = await getPortfolioDetail(name)
   const nextTickers = Array.from(new Set([...(currentDetail.tickers ?? []), normalizedTicker]))
 
-  const response = await fetch('http://localhost:5000/api/portfolios', {
+  const response = await fetch(buildApiUrl('/api/portfolios'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

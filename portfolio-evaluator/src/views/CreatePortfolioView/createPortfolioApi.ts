@@ -1,5 +1,7 @@
+import { buildApiUrl } from '../../config/api'
+
 export const createPortfolio = async (name: string) => {
-  const response = await fetch(`http://localhost:5000/api/portfolios/empty/${encodeURIComponent(name)}`, {
+  const response = await fetch(buildApiUrl(`/api/portfolios/empty/${encodeURIComponent(name)}`), {
     method: 'POST',
   })
 
